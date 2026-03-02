@@ -23,18 +23,23 @@ namespace RealEstateAgency.Forms
 
         private void LoadData()
         {
+            // Получаем все объекты недвижимости, даже если на них нет сделок
             var data = db.Properties
-                .Include(p => p.Owner)
-                .Include(p => p.City)
-                .Include(p => p.PropertyType)
+                .Include(p => p.Owner)           // Загружаем владельцев
+                .Include(p => p.City)            // Загружаем города
+                .Include(p => p.PropertyType)    // Загружаем тип недвижимости
                 .Select(p => new
                 {
                     Адрес = p.Address,
+                    Город = p.City.Name,
+                    Владелец = p.Owner.Name,
+                    Тип = p.PropertyType.Name,
                     Комнаты = p.Rooms,
                     Цена = p.Price,
-                    Владелец = p.Owner.Name,
-                    Город = p.City.Name,
-                    Тип = p.PropertyType.Name
+                    Сделка = db.Deals
+                        .Where(d => d.PropertyId == p.Id)
+                        .Select(d => d.DealDate)
+                        .FirstOrDefault() // Возвращаем дату первой сделки, если она есть
                 })
                 .ToList();
 
